@@ -1,6 +1,6 @@
 controller:
   imagePullSecrets:
-    - name: ${PULL_SECRET_NAME}
+    - name: $${PULL_SECRET_NAME}
 
   serviceAccount:
     create: true

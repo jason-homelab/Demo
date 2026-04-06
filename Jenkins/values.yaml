@@ -1,0 +1,122 @@
+controller:
+  image:
+    registry: "docker.m.daocloud.io"
+  runAsUser: 0
+  runAsGroup: 0
+
+  # Mount sensitive credentials from Kubernetes Secret
+  extraEnv:
+    - name: JENKINS_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-credentials
+          key: admin-password
+    - name: ALIYUN_REGISTRY_USER
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-credentials
+          key: aliyun-registry-user
+    - name: ALIYUN_REGISTRY_PASS
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-credentials
+          key: aliyun-registry-pass
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - configuration-as-code
+    - blueocean
+    - credentials-binding
+    - job-dsl
+
+  # Mainland China Mirror
+  updateCenter: "https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json"
+
+  # JCasC Configuration
+  JCasC:
+    enabled: true
+    configScripts:
+      welcome-message: |
+        jenkins:
+          systemMessage: "DevOps Demo"
+      security: |
+        jenkins:
+          securityRealm:
+            local:
+              allowsSignup: false
+              users:
+                - id: "admin"
+                  password: "$${JENKINS_ADMIN_PASSWORD}"
+          authorizationStrategy:
+            loggedInUsersCanDoAnything:
+              allowAnonymousRead: false
+
+      credentials: |
+        credentials:
+          system:
+            domainCredentials:
+              - credentials:
+                  - usernamePassword:
+                      scope: GLOBAL
+                      id: "aliyun-registry-creds"
+                      username: "$${ALIYUN_REGISTRY_USER}"
+                      password: "$${ALIYUN_REGISTRY_PASS}"
+                      description: "Alibaba Cloud Container Registry"
+
+      # 2. Automated Job creation (Job DSL)
+      # This will be injected via Terraform's 'set' in main.tf
+      jobs: |
+        jobs:
+          - script: |
+              pipelineJob('Demo-Pipeline') {
+                definition {
+                  cps {
+                    script('''
+${JENKINSFILE_CONTENT}
+                    '''.stripIndent())
+                    sandbox()
+                  }
+                }
+              }
+
+      # 1. K8s Cloud Config
+      cloud: |
+        jenkins:
+          clouds:
+            - kubernetes:
+                name: "kubernetes"
+                serverUrl: "https://kubernetes.default.svc.cluster.local"
+                namespace: "jenkins"
+                jenkinsUrl: "http://jenkins.jenkins.svc.cluster.local:8080"
+                jenkinsTunnel: "jenkins-agent.jenkins.svc.cluster.local:50000"
+                templates:
+                  - name: "jenkins-agent"
+                    label: "jnlp"
+                    containers:
+                      - name: "jnlp"
+                        image: "docker.m.daocloud.io/jenkins/jnlp-slave:alpine"
+                        privileged: false
+                        alwaysPullImage: false
+
+  # Persistence for Docker Desktop
+  persistence:
+    enabled: true
+    storageClass: "hostpath" 
+    size: "10Gi"
+
+  # Service Type LoadBalancer on port 8080
+  serviceType: LoadBalancer
+  servicePort: 8080
+  targetPort: 8080
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    apiVersion: "networking.k8s.io/v1"
+    labels: {}
+    annotations: 
+      kubernetes.io/ingress.class: nginx
+    hostName: jenkins.local # Access via http://jenkins.local
+    path: /
+    ingressClassName: nginx

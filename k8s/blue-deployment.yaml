@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-blue
+  labels:
+    app: demo
+    version: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: demo
+        version: blue
+    spec:
+      containers:
+      - name: app
+        image: registry.cn-shanghai.aliyuncs.com/${NAMESPACE}/demo:blue # Use placeholder, user will replace
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APP_VERSION
+          value: "blue"

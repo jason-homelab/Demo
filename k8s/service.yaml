@@ -1,13 +1,15 @@
-apiVersion: v1
+piVersion: v1
 kind: Service
 metadata:
-  name: demo-service
+  name: app-service
   namespace: jenkins
 spec:
-  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 8090
+      protocol: TCP
+  # 关键点：通过修改 version 标签来切换流量 (blue <-> green)
   selector:
     app: demo
-    version: blue # Change this to 'green' to switch environments
+    version: blue 
+  type: ClusterIP # 如果需要外部访问，可改为 NodePort 或 LoadBalancer

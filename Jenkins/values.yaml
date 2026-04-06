@@ -3,9 +3,10 @@ controller:
     registry: "docker.m.daocloud.io"
   runAsUser: 0
   runAsGroup: 0
+  javaOpts: "-Djenkins.install.runSetupWizard=false -Dorg.jenkinsci.plugins.durabletask.BourneShellScript.LAUNCH_DIAGNOSTICS=true"
 
   # Mount sensitive credentials from Kubernetes Secret
-  extraEnv:
+  containerEnv:
     - name: JENKINS_ADMIN_PASSWORD
       valueFrom:
         secretKeyRef:
@@ -21,6 +22,16 @@ controller:
         secretKeyRef:
           name: jenkins-credentials
           key: aliyun-registry-pass
+    - name: GITHUB_USER
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-credentials
+          key: github-user
+    - name: GITHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-credentials
+          key: github-token
   installPlugins:
     - kubernetes
     - workflow-aggregator
@@ -63,6 +74,12 @@ controller:
                       username: "$${ALIYUN_REGISTRY_USER}"
                       password: "$${ALIYUN_REGISTRY_PASS}"
                       description: "Alibaba Cloud Container Registry"
+                  - usernamePassword:
+                      scope: GLOBAL
+                      id: "github-creds"
+                      username: "$${GITHUB_USER}"
+                      password: "$${GITHUB_TOKEN}"
+                      description: "GitHub Credentials"
 
       # 2. Automated Job creation (Job DSL)
       # This will be injected via Terraform's 'set' in main.tf

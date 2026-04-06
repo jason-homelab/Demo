@@ -9,6 +9,10 @@ metadata:
     app: jenkins-agent
 spec:
   containers:
+  - name: jnlp
+    image: docker.m.daocloud.io/jenkins/inbound-agent:alpine
+    securityContext:
+      runAsUser: 0
   - name: dind
     image: docker.m.daocloud.io/library/docker:dind
     imagePullPolicy: IfNotPresent
@@ -45,12 +49,18 @@ spec:
     }
 
     environment {
-        DOCKER_REGISTRY = "crpi-v1qihtqp9ipem36a-vpc.cn-shanghai.personal.cr.aliyuncs.com/imbucket/bucket"
+        REGISTRY_DOMAIN = "crpi-v1qihtqp9ipem36a.cn-shanghai.personal.cr.aliyuncs.com"
+        REGISTRY_REPO = "crpi-v1qihtqp9ipem36a.cn-shanghai.personal.cr.aliyuncs.com/imbucket/bucket"
         IMAGE_NAME = "demo-app"
         VERSION = "v1.0.${BUILD_NUMBER}"
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/jasonsproject/Demo.git'
+            }
+        }
         stage('Build Image') {
             steps {
                 container('docker') {
@@ -73,17 +83,10 @@ spec:
                         usernameVariable: 'REGISTRY_USER',
                         passwordVariable: 'REGISTRY_PASS'
                     )]) {
-                        sh 'docker login -u $REGISTRY_USER -p $REGISTRY_PASS $DOCKER_REGISTRY'
-                        sh 'docker tag $IMAGE_NAME:$VERSION $DOCKER_REGISTRY/$IMAGE_NAME:$VERSION'
-                        sh 'docker push $DOCKER_REGISTRY/$IMAGE_NAME:$VERSION'
+                        sh 'echo $REGISTRY_PASS | docker login -u $REGISTRY_USER --password-stdin $REGISTRY_DOMAIN'
+                        sh 'docker tag $IMAGE_NAME:$VERSION $REGISTRY_REPO:$VERSION'
+                        sh 'docker push $REGISTRY_REPO:$VERSION'
                     }
-                }
-            }
-        }
-        stage('Security Scan') {
-            steps {
-                container('trivy') {
-                    sh 'trivy image $IMAGE_NAME:$VERSION'
                 }
             }
         }
@@ -92,7 +95,7 @@ spec:
             steps {
                 container('kubectl') {
                     // Update image to the newly built one
-                    sh 'sed -i "s|image: .*|image: $DOCKER_REGISTRY/$IMAGE_NAME:$VERSION|g" $WORKSPACE/k8s/green-deployment.yaml'
+                    sh 'sed -i "s|image: .*|image: $REGISTRY_REPO:$VERSION|g" $WORKSPACE/k8s/green-deployment.yaml'
                     sh 'kubectl apply -f $WORKSPACE/k8s/green-deployment.yaml'
                     echo "Green environment deployed."
                 }

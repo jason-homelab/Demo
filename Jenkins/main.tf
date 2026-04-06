@@ -40,6 +40,8 @@ resource "kubernetes_secret_v1" "jenkins_credentials" {
     "admin-password"      = var.jenkins_admin_password
     "aliyun-registry-user" = var.aliyun_registry_user
     "aliyun-registry-pass" = var.aliyun_registry_pass
+    "github-user"          = var.github_user
+    "github-token"         = var.github_token
   }
 
 }

@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: registry.cn-shanghai.aliyuncs.com/${NAMESPACE}/demo:blue # Use placeholder, user will replace
+        image: crpi-v1qihtqp9ipem36a.cn-shanghai.personal.cr.aliyuncs.com/imbucket/bucket:blue
         ports:
         - containerPort: 8080
         env:

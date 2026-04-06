@@ -1,6 +1,6 @@
 controller:
-  imagePullSecrets:
-    - name: $${aliyun-pull-secret}
+  # imagePullSecrets:
+  #   - name: $${aliyun-pull-secret}
 
   serviceAccount:
     create: true

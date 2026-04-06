@@ -1,4 +1,15 @@
+# --- NEW: RBAC Configuration added to fix "Forbidden" error ---
+rbac:
+  create: true          # Enables creation of Roles and RoleBindings
+  readSecrets: true     # Allows Jenkins to read secrets in the namespace
+
 controller:
+  # --- NEW: ServiceAccount settings ---
+  serviceAccount:
+    create: true
+    name: jenkins       # Explicitly named to match your existing setup
+  installDefaultRole: true # CRITICAL: Grants permission to manage Deployments/Pods/Services
+  
   image:
     registry: "docker.m.daocloud.io"
   runAsUser: 0

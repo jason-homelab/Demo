@@ -90,7 +90,7 @@ resource "kubernetes_role_v1" "jenkins_ci_role" {
   }
 }
 
-# RoleBinding：把上面 Role 绑定给 Jenkins 的 ServiceAccount
+# RoleBinding：Role 绑定给 Jenkins 的 ServiceAccount
 resource "kubernetes_role_binding_v1" "jenkins_ci_binding" {
   metadata {
     name      = "jenkins-ci-binding"
@@ -111,6 +111,26 @@ resource "kubernetes_role_binding_v1" "jenkins_ci_binding" {
 
   depends_on = [helm_release.jenkins]   # 确保 ServiceAccount 已创建
 }
+
+resource "kubernetes_secret_v1" "aliyun_pull_secret" {
+  metadata {
+    name      = "aliyun-pull-secret"
+    namespace = kubernetes_namespace_v1.jenkins.metadata[0].name
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+
+  data = {
+    ".dockerconfigjson" = jsonencode({
+      auths = {
+        "crpi-v1qihtqp9ipem36a.cn-shanghai.personal.cr.aliyuncs.com/imbucket/bucket" = { 
+          auth = base64encode("${var.aliyun_registry_user}:${var.aliyun_registry_pass}")
+        }
+      }
+    })
+  }
+}
+
 
 # ================================================================
 

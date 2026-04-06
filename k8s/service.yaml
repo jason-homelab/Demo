@@ -11,5 +11,5 @@ spec:
   # 关键点：通过修改 version 标签来切换流量 (blue <-> green)
   selector:
     app: demo
-    version: blue
+    version: green
   type: LoadBalancer

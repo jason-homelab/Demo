@@ -42,6 +42,8 @@ spec:
     tty: true
   - name: kubectl
     image: bitnami/kubectl:latest
+    securityContext:
+      runAsUser: 0
     command: ['cat']
     tty: true
 """

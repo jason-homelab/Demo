@@ -100,6 +100,7 @@ spec:
                     // Update image to the newly built one
                     sh 'sed -i "s|image: .*|image: $REGISTRY_REPO:$VERSION|g" $WORKSPACE/k8s/green-deployment.yaml'
                     sh 'kubectl apply -f $WORKSPACE/k8s/green-deployment.yaml'
+                    sh 'kubectl apply -f $WORKSPACE/k8s/service.yaml'
                     echo "Green environment deployed."
                 }
             }

@@ -55,9 +55,9 @@
         // 基础设施即代码 (IaC) 工具
         "ghcr.io/devcontainers/features/terraform:1": {
             "installTerraformDocs": true,
-            "version": "latest",
+            "installTFsec": "true",
             "tflint": "latest",
-            "tfsec": "latest",
+            "version": "latest",
             "terragrunt": "latest"
         },
 

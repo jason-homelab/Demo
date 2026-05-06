@@ -11,7 +11,6 @@ pip3 install --upgrade pip
 echo "🐍 Installing Python development tools..."
 pip3 install --user --upgrade \
     checkov \
-    tflint \
     pylint \
     black \
     isort \

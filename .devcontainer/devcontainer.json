@@ -4,9 +4,32 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
-    
+
+    // 工作目录配置
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+
+    // 容器运行时配置
+    "runArgs": [
+        "--cpus=2",
+        "--memory=4g"
+    ],
+
+    // 端口转发配置
+    "forwardPorts": [8080, 8443, 5000, 3000],
+    "portsAttributes": {
+        "8080": {
+            "label": "application",
+            "onAutoForward": "notify"
+        },
+        "5000": {
+            "label": "jenkins",
+            "onAutoForward": "notify"
+        }
+    },
+
     "features": {
-        // 核心云平台工具
+        // 云平台工具
         "ghcr.io/devcontainers/features/aws-cli:1": {
             "version": "latest"
         },
@@ -15,7 +38,7 @@
             "helm": "latest",
             "minikube": "latest"
         },
-        
+
         // 编程语言与自动化
         "ghcr.io/devcontainers/features/python:1": {
             "installTools": true,
@@ -28,8 +51,8 @@
         "ghcr.io/hspaans/devcontainer-features/ansible-lint:2": {
             "version": "latest"
         },
-        
-        // IaC 工具 
+
+        // 基础设施即代码 (IaC) 工具
         "ghcr.io/devcontainers/features/terraform:1": {
             "installTerraformDocs": true,
             "version": "latest",
@@ -37,13 +60,8 @@
             "tfsec": "latest",
             "terragrunt": "latest"
         },
-        // 实用工具 
-        "ghcr.io/devcontainers/features/common-utils:1": {
-            "installZsh": true,
-            "configureZshOhMyZsh": true,
-            "upgradePackages": false
-        },
-        "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {},
+
+        // 开发工具与环境
         "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
             "installOhMyZsh": true,
@@ -54,42 +72,56 @@
             "userUid": "1001",
             "userGid": "1001"
         },
-        "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
-            "setLocale": true,
-            "theme": "agnoster",
-            "plugins": "git docker",
-            "desiredLocale": "en_US.UTF-8 UTF-8"
-        },
         "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},
-        "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
-            "plugins": "ssh-agent npm",
-            "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions",
-            "username": "vscode"
-        }
+        "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {},
+        "ghcr.io/devcontainers/features/git:1": {
+            "ppa": true
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
 
-    // 优化：IDE 体验增强
+    // IDE 扩展与设置
     "customizations": {
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.fontFamily": "Fira Code",
                 "terraform.languageServer.external": true,
-                "editor.formatOnSave": true
+                "terraform.languageServer.enabled": true,
+                "[terraform]": {
+                    "editor.defaultFormatter": "hashicorp.terraform",
+                    "editor.formatOnSave": true
+                },
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.python",
+                    "editor.formatOnSave": true
+                },
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode"
             },
             "extensions": [
                 "ms-python.python",
+                "ms-python.vscode-pylance",
                 "hashicorp.terraform",
                 "redhat.ansible",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "amazonwebservices.aws-toolkit-vscode",
-                "eamodio.gitlens"
+                "eamodio.gitlens",
+                "ms-vscode-remote.remote-containers",
+                "ms-azure-tools.vscode-docker",
+                "esbenp.prettier-vscode",
+                "GitHub.copilot",
+                "charliermarsh.ruff"
             ]
         }
     },
 
-    // 优化：自动化脚本
-    "postCreateCommand": "pip3 install --user --upgrade checkov tflint", 
+    // 初始化脚本
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
 
-    // 确保以非 root 用户运行，提高安全性与文件权限一致性
+    // 确保以非 root 用户运行
     "remoteUser": "vscode"
 }

@@ -42,6 +42,7 @@
         // 编程语言与自动化
         "ghcr.io/devcontainers/features/python:1": {
             "installTools": true,
+            "installPath": "/usr/local/python",
             "version": "3.12"
         },
         "ghcr.io/devcontainers-extra/features/ansible:2": {
